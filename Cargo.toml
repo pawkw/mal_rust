@@ -2,7 +2,9 @@
 name = "mal_rust"
 version = "0.1.0"
 edition = "2021"
+authors = ["Peter Weston"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rustyline = "10.0.0"
