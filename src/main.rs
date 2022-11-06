@@ -1,5 +1,7 @@
+mod reader;
 use rustyline::error::ReadlineError;
 use rustyline::{Editor, Result};
+use reader::read_str;
 
 fn main() -> Result<()> {
     let mut rl = Editor::<()>::new()?;
@@ -13,6 +15,7 @@ fn main() -> Result<()> {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
                 rep(&line);
+                // println!("{}", read_str(&line));
             },
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
@@ -27,12 +30,14 @@ fn main() -> Result<()> {
                 break
             }
         }
+        
     }
     rl.save_history("history.txt")
 }
 
 
 fn READ(input: &String) -> String {
+    read_str(input);
     let output: String = input.clone();
     output
 }
