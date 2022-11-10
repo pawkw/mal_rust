@@ -1,4 +1,8 @@
 mod reader;
+mod maltype;
+mod malerror;
+use malerror::MalError;
+use maltype::MalType;
 use rustyline::error::ReadlineError;
 use rustyline::{Editor, Result};
 use reader::read_str;
@@ -14,7 +18,7 @@ fn main() -> Result<()> {
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                rep(&line);
+                println!("{}",rep(&line));
                 // println!("{}", read_str(&line));
             },
             Err(ReadlineError::Interrupted) => {
@@ -36,21 +40,27 @@ fn main() -> Result<()> {
 }
 
 
-fn READ(input: &String) -> String {
-    read_str(input);
-    let output: String = input.clone();
+fn READ(input: &String) -> MalType {
+    let output = read_str(input).unwrap();
     output
 }
 
-fn EVAL(input: &String) -> String {
-    let output: String = input.clone();
+fn EVAL(input: &MalType) -> MalType {
+    let output: MalType = input.clone();
     output
 }
 
-fn PRINT(input: &String) -> String {
-    let output: String = input.clone();
-    println!("{}", &input);
-    output
+fn PRINT(input: &MalType) -> String {
+    match input {
+        MalType::MalSymbol(x) => { String::from(x) },
+        MalType::MalList(x) => {
+            let mut string_list = vec![];
+            for item in x {
+                string_list.push(PRINT(item));
+            }
+            ("(".to_string()+&string_list.join(" ")+")").to_string()
+        }
+    }
 }
 
 fn rep(input: &String) -> String {
