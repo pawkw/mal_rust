@@ -1,5 +1,3 @@
-use crate::malerror::MalError;
-
 #[derive(Clone, PartialEq, Debug)]
 pub enum MalType {
     MalList(Vec<MalType>),

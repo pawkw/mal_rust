@@ -1,5 +1,3 @@
-use std::ops::DerefMut;
-
 use crate::MalType;
 
 pub fn pr_str(input: &MalType, print_readably: bool) -> String {

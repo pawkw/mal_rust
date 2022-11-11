@@ -42,7 +42,7 @@ fn main() -> Result<()> {
 }
 
 
-fn READ(input: &String) -> MalType {
+fn mal_read(input: &String) -> MalType {
     let output = read_str(input);
     match output {
         Ok(x) => x,
@@ -66,16 +66,16 @@ fn READ(input: &String) -> MalType {
     }
 }
 
-fn EVAL(input: &MalType) -> MalType {
+fn mal_eval(input: &MalType) -> MalType {
     let output: MalType = input.clone();
     output
 }
 
-fn PRINT(input: &MalType) -> String {
+fn mal_print(input: &MalType) -> String {
     pr_str(input, true)
 }
 
 fn rep(input: &String) -> String {
-    let output: String = PRINT(&EVAL(&READ(&input)));
+    let output: String = mal_print(&mal_eval(&mal_read(&input)));
     output
 }

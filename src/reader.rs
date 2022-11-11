@@ -1,6 +1,6 @@
 use crate::malerror::MalError;
 use crate::maltype::MalType;
-use regex::{Error, Regex};
+use regex::Regex;
 
 struct Reader {
     token_vector: Vec<String>,
@@ -48,11 +48,12 @@ fn tokenize(input: &String) -> Result<Vec<String>, MalError> {
         .captures_iter(input)
         .map(|x| x[1].trim().to_string())
         .collect();
+    Ok(tokens)
     // dbg!(&tokens);
-    match tokens {
-        Vec { .. } => Ok(tokens),
-        _ => Err(MalError::TokenizingError),
-    }
+    // match tokens {
+    //     Vec { .. } => Ok(tokens),
+    //     _ => Err(MalError::TokenizingError),
+    // }
 }
 
 #[test]
@@ -131,6 +132,10 @@ fn read_atom(token_reader: &mut Reader) -> Result<MalType, MalError> {
                         return Err(MalError::ParenMismatch);
                     }
                     return Ok(MalType::MalString(get_string(&x)))
+                } else if x == &"false".to_string() {
+                    return Ok(MalType::MalFalse);
+                } else if x == &"true".to_string() {
+                    return Ok(MalType::MalTrue);
                 }
                 return Ok(MalType::MalSymbol(x.to_string()));
             }
