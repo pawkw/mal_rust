@@ -13,3 +13,14 @@ Hello 123
 [ 1 2 3 ]
 {1 2 3  }
 "Hello\\nthere"
+(+ 1 2)
+"Hello\\nThere"
+"hello\\nthere"
+"Hello\\nthere"
+"Hello\\nthere."
+"hello"
+("Hello\\nthere.")
+"\\\\\\\\"
+"\\\\"
+"\\\\\\\\"
+"\\\\"

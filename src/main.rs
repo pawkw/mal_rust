@@ -1,11 +1,13 @@
 mod reader;
 mod maltype;
 mod malerror;
+mod printer;
 use malerror::MalError;
 use maltype::MalType;
 use rustyline::error::ReadlineError;
 use rustyline::{Editor, Result};
 use reader::read_str;
+use printer::pr_str;
 
 fn main() -> Result<()> {
     let mut rl = Editor::<()>::new()?;
@@ -70,30 +72,7 @@ fn EVAL(input: &MalType) -> MalType {
 }
 
 fn PRINT(input: &MalType) -> String {
-    fn get_list(input: &Vec<MalType>) -> String {
-        let mut string_list = vec![];
-            for item in input {
-                string_list.push(PRINT(item));
-            }
-            string_list.join(" ")
-    }
-
-    match input {
-        MalType::MalSymbol(x) => { String::from(x) },
-        MalType::MalList(x) => {
-            "(".to_string()+&get_list(x)+&")".to_string()
-        },
-        MalType::MalHashmap(x) => {
-            "{".to_string()+&get_list(x)+&"}".to_string()
-        },
-        MalType::MalVec(x) => {
-            "[".to_string()+&get_list(x)+&"]".to_string()
-        },
-        MalType::MalNil => { String::from("nil") },
-        MalType::MalString(x) => {
-            x.into()
-        }
-    }
+    pr_str(input, true)
 }
 
 fn rep(input: &String) -> String {

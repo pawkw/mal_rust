@@ -8,16 +8,8 @@ pub enum MalType {
     MalVec(Vec<MalType>),
     MalHashmap(Vec<MalType>),
     MalString(String),
+    MalTrue,
+    MalFalse,
+    MalKeyword(String),
 }
 
-impl MalType {
-    pub fn push(&mut self, item: MalType) -> Result<(), MalError> {
-        match self {
-            Self::MalList(x) => {
-                x.push(item);
-                Ok(())
-            }
-            _ => Err(MalError::TypeMismatch),
-        }
-    }
-}

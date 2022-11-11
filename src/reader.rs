@@ -1,6 +1,3 @@
-use std::result;
-
-// mod maltype;
 use crate::malerror::MalError;
 use crate::maltype::MalType;
 use regex::{Error, Regex};
@@ -45,10 +42,10 @@ fn tokenize(input: &String) -> Result<Vec<String>, MalError> {
     const PATTERN: &str =
         r#"[,\s]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)"#;
 
-    let input_no_commas = &input.replace(",", " ");
+    // let input_no_commas = &input.replace(",", " ");
     let re = Regex::new(PATTERN).unwrap();
     let tokens = re
-        .captures_iter(input_no_commas)
+        .captures_iter(input)
         .map(|x| x[0].trim().to_string())
         .collect();
     // dbg!(&tokens);
@@ -127,11 +124,49 @@ fn read_atom(token_reader: &mut Reader) -> Result<MalType, MalError> {
         let token = token_reader.read();
         match token {
             Some(x) => {
+                if x.starts_with(":") {
+                    return Ok(MalType::MalKeyword(x[1..].to_string()));
+                } else if x.starts_with('"') {
+                    return Ok(MalType::MalString(get_string(&x)))
+                }
                 return Ok(MalType::MalSymbol(x.to_string()));
             }
             None => { return Err(MalError::ParseError); }
         }
     }
+}
+
+fn get_string(input: &String) -> String {
+    let mut string: Vec<String> = vec![];
+    let mut escaped: bool = false;
+    for character in input.as_str().chars().skip(1) {
+        if character == '\\' && !escaped {
+            escaped = true;
+            continue;
+        }
+        if escaped {
+            match character {
+                'n' => {
+                    string.push("\n".to_string());
+                },
+                '\\' => {
+                    string.push("\\".to_string());
+                },
+                '"' => {
+                    string.push("\"".to_string());
+                },
+                _ => {
+                    string.push("\\".to_string()+&character.to_string());
+                }
+            }
+            escaped = false;
+            continue;
+        }
+        string.push(character.to_string());
+    }
+
+    string.pop();
+    string.join("")
 }
 
 #[test]
