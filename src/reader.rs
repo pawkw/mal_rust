@@ -46,7 +46,7 @@ fn tokenize(input: &String) -> Result<Vec<String>, MalError> {
     let re = Regex::new(PATTERN).unwrap();
     let tokens = re
         .captures_iter(input)
-        .map(|x| x[0].trim().to_string())
+        .map(|x| x[1].trim().to_string())
         .collect();
     // dbg!(&tokens);
     match tokens {
@@ -96,7 +96,7 @@ fn read_list(token_reader: &mut Reader, delim: &str) -> Result<Vec<MalType>, Mal
                     token_reader.read();
                     break 'dave;
                 }
-                let item: MalType = read_form(token_reader).unwrap();
+                let item: MalType = read_form(token_reader)?;
                 token_list.push(item);
             }
             None => return Err(MalError::ParenMismatch),
@@ -127,6 +127,9 @@ fn read_atom(token_reader: &mut Reader) -> Result<MalType, MalError> {
                 if x.starts_with(":") {
                     return Ok(MalType::MalKeyword(x[1..].to_string()));
                 } else if x.starts_with('"') {
+                    if x.len() < 2 || !(x.starts_with("\"") && x.ends_with("\"")) {
+                        return Err(MalError::ParenMismatch);
+                    }
                     return Ok(MalType::MalString(get_string(&x)))
                 }
                 return Ok(MalType::MalSymbol(x.to_string()));
