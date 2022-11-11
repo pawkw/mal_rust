@@ -22,11 +22,11 @@ fn main() -> Result<()> {
                 // println!("{}", read_str(&line));
             },
             Err(ReadlineError::Interrupted) => {
-                println!("CTRL-C");
+                println!("Keyboard interrupt. Exiting.");
                 break
             },
             Err(ReadlineError::Eof) => {
-                println!("CTRL-D");
+                println!("Exiting.");
                 break
             },
             Err(err) => {
@@ -41,8 +41,27 @@ fn main() -> Result<()> {
 
 
 fn READ(input: &String) -> MalType {
-    let output = read_str(input).unwrap();
-    output
+    let output = read_str(input);
+    match output {
+        Ok(x) => x,
+        Err(x) => {
+            match x {
+                MalError::ParseError => {
+                    println!("A parse error occured: {}", &input);
+                },
+                MalError::ParenMismatch => {
+                    println!("Expected a closing paren.");
+                },
+                MalError::TokenizingError => {
+                    println!("An error occured while tokenizing: {}", &input);
+                },
+                MalError::TypeMismatch => {
+                    println!("A type mismatch occured: {}", &input);
+                },
+            }
+            MalType::MalNil
+        }
+    }
 }
 
 fn EVAL(input: &MalType) -> MalType {
@@ -51,14 +70,28 @@ fn EVAL(input: &MalType) -> MalType {
 }
 
 fn PRINT(input: &MalType) -> String {
+    fn get_list(input: &Vec<MalType>) -> String {
+        let mut string_list = vec![];
+            for item in input {
+                string_list.push(PRINT(item));
+            }
+            string_list.join(" ")
+    }
+
     match input {
         MalType::MalSymbol(x) => { String::from(x) },
         MalType::MalList(x) => {
-            let mut string_list = vec![];
-            for item in x {
-                string_list.push(PRINT(item));
-            }
-            ("(".to_string()+&string_list.join(" ")+")").to_string()
+            "(".to_string()+&get_list(x)+&")".to_string()
+        },
+        MalType::MalHashmap(x) => {
+            "{".to_string()+&get_list(x)+&"}".to_string()
+        },
+        MalType::MalVec(x) => {
+            "[".to_string()+&get_list(x)+&"]".to_string()
+        },
+        MalType::MalNil => { String::from("nil") },
+        MalType::MalString(x) => {
+            x.into()
         }
     }
 }

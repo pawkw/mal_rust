@@ -4,6 +4,10 @@ use crate::malerror::MalError;
 pub enum MalType {
     MalList(Vec<MalType>),
     MalSymbol(String),
+    MalNil,
+    MalVec(Vec<MalType>),
+    MalHashmap(Vec<MalType>),
+    MalString(String),
 }
 
 impl MalType {

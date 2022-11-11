@@ -37,26 +37,24 @@ pub fn read_str(input: &String) -> Result<MalType, MalError> {
             let result = read_form(&mut Reader::new(x));
             Ok(result?)
         }
-        _ => Err(MalError::TokenizingError(
-            "reader::read_str: tokenize failed.".to_string(),
-        )),
+        _ => Err(MalError::TokenizingError),
     }
 }
 
 fn tokenize(input: &String) -> Result<Vec<String>, MalError> {
     const PATTERN: &str =
-        r#"[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)"#;
+        r#"[,\s]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)"#;
 
+    let input_no_commas = &input.replace(",", " ");
     let re = Regex::new(PATTERN).unwrap();
     let tokens = re
-        .captures_iter(input)
+        .captures_iter(input_no_commas)
         .map(|x| x[0].trim().to_string())
         .collect();
+    // dbg!(&tokens);
     match tokens {
         Vec { .. } => Ok(tokens),
-        _ => Err(MalError::TokenizingError(
-            "reader::tokenize error.".to_string(),
-        )),
+        _ => Err(MalError::TokenizingError),
     }
 }
 
@@ -77,26 +75,32 @@ fn read_form(token_reader: &mut Reader) -> Result<MalType, MalError> {
         Some(x) => {
             if x.starts_with("(") {
                 token_reader.read();
-                Ok(read_list(token_reader)?)
+                Ok(MalType::MalList(read_list(token_reader, &")")?))
+            } else if x.starts_with("{") {
+                token_reader.read();
+                Ok(MalType::MalHashmap(read_list(token_reader, &"}")?))
+            } else if x.starts_with("[") {
+                token_reader.read();
+                Ok(MalType::MalVec(read_list(token_reader, &"]")?))
             } else {
                 Ok(read_atom(token_reader)?)
             }
-        },
+        }
         None => Err(MalError::ParseError),
     }
 }
 
-fn read_list(token_reader: &mut Reader) -> Result<MalType, MalError> {
-    let mut token_list = MalType::MalList(vec![]);
+fn read_list(token_reader: &mut Reader, delim: &str) -> Result<Vec<MalType>, MalError> {
+    let mut token_list = vec![];
     'dave: loop {
         match token_reader.peek() {
             Some(x) => {
-                if x.starts_with(")") {
+                if x.starts_with(delim) {
                     token_reader.read();
                     break 'dave;
                 }
                 let item: MalType = read_form(token_reader).unwrap();
-                token_list.push(item).unwrap();
+                token_list.push(item);
             }
             None => return Err(MalError::ParenMismatch),
         }
@@ -107,24 +111,26 @@ fn read_list(token_reader: &mut Reader) -> Result<MalType, MalError> {
 // #[test]
 // fn test_read_list() -> Result<(), MalError> {
 //     let input = "(+ 1 2)".to_string();
-    
+
 //     let token_list = tokenize(&input)?;
 //     let reader = &mut Reader::new(token_list);
 //     let result = read_list(reader)?;
-    
+
 //     let mut expected = MalType::MalList(vec![]);
-    
+
 //     println!("{:?} :: {:?}", result, expected);
 //     Ok(())
 // }
 
 fn read_atom(token_reader: &mut Reader) -> Result<MalType, MalError> {
-    let token = &token_reader.read();
-    match token {
-        Some(x) => {
-            Ok(MalType::MalSymbol(x.to_string()))
+    loop {
+        let token = token_reader.read();
+        match token {
+            Some(x) => {
+                return Ok(MalType::MalSymbol(x.to_string()));
+            }
+            None => { return Err(MalError::ParseError); }
         }
-        None => Err(MalError::ParseError),
     }
 }
 
